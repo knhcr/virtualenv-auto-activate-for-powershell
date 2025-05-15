@@ -79,14 +79,16 @@ function Deactivate-VirtualEnv {
 
 
 # save original prompt function as __prompt_original
-if (Test-Path Function:\prompt) {
-    # Rename original prompt function
-    Rename-Item Function:\prompt __prompt_org -Force -ErrorAction SilentlyContinue
-} elseif (Test-Path Function:\__prompt_org) {
-    # Do nothing (already renamed)
+if ((Test-Path Function:\prompt)) {
+    if (-not (Test-Path Function:\__prompt_org_vaa)) {
+        # Rename original prompt function
+        Rename-Item Function:\prompt __prompt_org_vaa -Force -ErrorAction SilentlyContinue
+    } else{
+        # Do nothing (already renamed)
+    }
 } else {
     # Define default prompt function
-    function __prompt_org { "PS $($executionContext.SessionState.Path.CurrentLocation)$('>' * ($nestedPromptLevel + 1)) " }
+    function __prompt_org_vaa { "PS $($executionContext.SessionState.Path.CurrentLocation)$('>' * ($nestedPromptLevel + 1)) " }
 }
 
 
@@ -101,13 +103,13 @@ function prompt {
     $calledVenv = Activate-VirtualEnv # activate virtualenv if necessary
 
     # call original prompt function
-    $promptString = Invoke-Command -ScriptBlock $Function:__prompt_org
+    $promptString = Invoke-Command -ScriptBlock $Function:__prompt_org_vaa
     
     # if Activate.ps1 is called this time, create prompt string for aplly instantly.
     if ($null -ne $calledVenv) {
-        $green = "`e[32m"
+        $lightGreen = "`e[92m"
         $reset = "`e[0m"
-        $promptString = "$green($calledVenv)$reset $promptString"
+        $promptString = "$lightGreen($calledVenv)$reset $promptString"
     }
 
     return $promptString
